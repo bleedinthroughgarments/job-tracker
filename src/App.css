@@ -1,0 +1,292 @@
+/* General app background */
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 40px 20px;
+
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgb(99 102 241 / 18%),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 90% 30%,
+      rgb(37 99 235 / 12%),
+      transparent 40%
+    ),
+    #111827;
+
+  color: #F3F4F6;
+  font-family: Arial, sans-serif;
+}
+
+.app-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.app h1 {
+  margin-top: 0;
+  margin-bottom: 28px;
+  color: #F9FAFB;
+  font-size: 32px;
+  letter-spacing: -0.8px;
+}
+
+/* Vacancy form */
+.job-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 32px;
+  column-gap: 20px;
+  max-width: 100%;
+  padding: 28px;
+  margin-bottom: 36px;
+
+  background: linear-gradient(
+    145deg,
+    #1F2937,
+    #1B2434
+  );
+
+  border: 1px solid #374151;
+  border-radius: 16px;
+}
+
+.job-form input,
+.job-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background: #111827;
+  color: #F3F4F6;
+  font: inherit;
+}
+
+.job-form textarea {
+  grid-column: 1 / -1;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.job-form input:nth-of-type(3) {
+  grid-column: 1 / 2;
+}
+
+.job-form input::placeholder,
+.job-form textarea::placeholder {
+  color: #9CA3AF;
+}
+
+.job-form input:focus,
+.job-form textarea:focus {
+  outline: 2px solid #8B5CF6;
+  border-color: #8B5CF6;
+}
+
+/* Main form button */
+.job-form button {
+  align-self: stretch;
+  justify-self: start;
+  min-width: 140px;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+
+  background: linear-gradient(
+    135deg,
+    #8B5CF6 0%,
+    #3B82F6 100%
+  );
+
+  color: #FFFFFF;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgb(99 102 241 / 20%);
+
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    background 200ms ease;
+}
+
+.job-form button:hover {
+  background: linear-gradient(
+    135deg,
+    #7C3AED 0%,
+    #2563EB 100%
+  );
+
+  box-shadow: 0 0 28px rgb(99 102 241 / 35%);
+  transform: translateY(-1px);
+}
+
+/* Search and status filter */
+.job-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.job-filters input,
+.job-filters select {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background: #1F2937;
+  color: #F3F4F6;
+  font: inherit;
+}
+
+.job-filters input {
+  flex: 1;
+}
+
+.job-filters input::placeholder {
+  color: #9CA3AF;
+}
+
+/* Vacancy list — vertical layout */
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+/* Vacancy card */
+.job-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 22px;
+  padding: 24px;
+
+  background: linear-gradient(
+    145deg,
+    #1F2937 0%,
+    #1B2434 100%
+  );
+
+  border: 1px solid #374151;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.job-card:hover {
+  transform: translateY(-3px);
+  border-color: #6366F1;
+  box-shadow: 0 8px 30px rgb(99 102 241 / 12%);
+}
+
+/* Vacancy information */
+.job-card h2 {
+  margin: 0;
+  color: #F9FAFB;
+  font-size: 20px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.job-card p {
+  margin: 0;
+  color: #D1D5DB;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.job-card a {
+  color: #93C5FD;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.job-card a:hover {
+  text-decoration: underline;
+}
+
+/* Status selector */
+.job-card select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background: #111827;
+  color: #F3F4F6;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Action buttons */
+.job-card button {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid #4B5563;
+  border-radius: 8px;
+  background: #374151;
+  color: #F3F4F6;
+  font: inherit;
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.job-card button:hover {
+  background: #4B5563;
+  border-color: #6B7280;
+}
+
+/* Edit and Delete buttons side by side */
+.job-card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.job-card-actions button {
+  flex: 1;
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+  .app {
+    padding: 24px 14px;
+  }
+
+  .job-card {
+    padding: 18px;
+    gap: 18px;
+  }
+
+  .job-form {
+    grid-template-columns: 1fr;
+    row-gap: 24px;
+    padding: 20px;
+  }
+
+  .job-form textarea,
+  .job-form input:nth-of-type(3) {
+    grid-column: auto;
+  }
+
+  .job-filters {
+    flex-direction: column;
+  }
+}
