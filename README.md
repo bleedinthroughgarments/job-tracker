@@ -1,75 +1,104 @@
-# React + TypeScript + Vite
+# Job Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack application for tracking job applications, built with React, TypeScript, Node.js, Express, and PostgreSQL.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Create and view job applications
+- Edit company and vacancy details
+- Update application statuses
+- Delete applications
+- Persist data in PostgreSQL
+- Handle loading and API errors
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Frontend:** React, TypeScript, Vite  
+**Backend:** Node.js, Express  
+**Database:** PostgreSQL  
+**Communication:** REST API
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js and npm
+- PostgreSQL
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 1. Clone the repository
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+git clone https://github.com/bleedinthroughgarments/job-tracker.git
+cd job-tracker
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Configure the database
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create a PostgreSQL database for the application.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a `server/.env` file with the following variables:
 
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=job_tracker
+DB_USER=your_postgres_user
+DB_PASSWORD=your_postgres_password
 ```
+
+Use your own local PostgreSQL credentials. Never commit the `.env` file.
+
+### 3. Start the backend
+
+```bash
+cd server
+npm install
+node server.js
+```
+
+### 4. Start the frontend
+
+Open a second terminal in the project root:
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite in your terminal.
+
+## Development
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+Run frontend linting:
+
+```bash
+npm run lint
+```
+
+## Project Structure
+
+```text
+job-tracker/
+├── server/
+│   ├── config/
+│   ├── controllers/
+│   ├── routes/
+│   └── server.js
+├── src/
+│   ├── services/
+│   ├── types/
+│   ├── App.tsx
+│   └── main.tsx
+├── package.json
+└── README.md
+```
+
+## Status
+
+This project is an MVP and is under active development.
