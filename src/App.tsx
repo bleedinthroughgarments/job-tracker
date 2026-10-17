@@ -1,299 +1,304 @@
-
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import "./App.css";
 import {
-  getJobs,
   addJob,
   changeJobStatus,
-  removeJob,
   editJob,
-} from './services/jobService';
-import type { Job, JobStatus } from './types/job';
-import type { NewJob } from './services/jobService';
-import './App.css';
+  getJobs,
+  removeJob,
+} from "./services/jobService";
+import type { NewJob } from "./services/jobService";
+import type { Job, JobStatus } from "./types/job";
+
+const EMPTY_FORM = {
+  title: "",
+  company: "",
+  status: "not_sent" as JobStatus,
+  description: "",
+  url: "",
+};
 
 function App() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('');
-  const [search, setSearch] = useState('');
-  const [searchStatus, setSearchStatus] = useState<JobStatus | 'all'>('all');
-  const [desc, setDesc] = useState('');
-  const [url, setUrl] = useState('');
-  const [editingJobId, setEditingJobId] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadJobs() {
       try {
-        const resultJobs = await getJobs();
-        setJobs(resultJobs);
+        setError("");
+        setJobs(await getJobs());
       } catch {
-        setError('Не удалось загрузить вакансии. Проверь подключение к серверу.');
+        setError("Не удалось загрузить вакансии. Проверь работу backend.");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     }
 
-    loadJobs();
+    void loadJobs();
   }, []);
 
-  function getErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    return 'Произошла неизвестная ошибка.';
+  function handleChange(
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function clearForm() {
-    setTitle('');
-    setCompany('');
-    setDesc('');
-    setUrl('');
-    setEditingJobId(null);
+  function resetForm() {
+    setForm(EMPTY_FORM);
+    setEditingId(null);
+    setError("");
   }
 
-  async function handleAddJob() {
-    const trimmedTitle = title.trim();
-    const trimmedCompany = company.trim();
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    if (!trimmedTitle || !trimmedCompany) {
-      setError('Заполни название вакансии и компанию.');
+    const title = form.title.trim();
+    const company = form.company.trim();
+
+    if (!title || !company) {
+      setError("Название вакансии и компания обязательны.");
       return;
     }
 
-    const jobData: NewJob = {
-      title: trimmedTitle,
-      company: trimmedCompany,
-      status: 'not_sent',
+    const description = form.description.trim();
+    const url = form.url.trim();
+
+    const payload: NewJob = {
+      title,
+      company,
+      status: form.status,
+      description: description || null,
+      url: url || null,
     };
 
-    const trimmedDesc = desc.trim();
-    const trimmedUrl = url.trim();
-
-    if (trimmedDesc) jobData.description = trimmedDesc;
-    if (trimmedUrl) jobData.url = trimmedUrl;
-
-    setError('');
-    setIsSaving(true);
-
     try {
-      const resultJob = await addJob(jobData);
-      setJobs((prevJobs) => [...prevJobs, resultJob]);
-      clearForm();
-    } catch (error) {
-      setError(`Не удалось создать вакансию. ${getErrorMessage(error)}`);
-    } finally {
-      setIsSaving(false);
-    }
-  }
+      setSaving(true);
+      setError("");
 
-  async function handleStatusChange(id: string, status: JobStatus) {
-    setError('');
-
-    try {
-      const updatedJobs = await changeJobStatus(id, status);
-      setJobs(updatedJobs);
-    } catch (error) {
-      setError(`Не удалось изменить статус. ${getErrorMessage(error)}`);
-    }
-  }
-
-  async function handleDeleteJob(id: string) {
-    setError('');
-
-    try {
-      const resultJobs = await removeJob(id);
-      setJobs(resultJobs);
-
-      if (editingJobId === id) {
-        clearForm();
+      if (editingId !== null) {
+        const updatedJobs = await editJob(editingId, payload);
+        setJobs(updatedJobs);
+      } else {
+        const newJob = await addJob(payload);
+        setJobs((current) => [newJob, ...current]);
       }
-    } catch (error) {
-      setError(`Не удалось удалить вакансию. ${getErrorMessage(error)}`);
+
+      resetForm();
+    } catch {
+      setError("Не удалось сохранить вакансию. Попробуй ещё раз.");
+    } finally {
+      setSaving(false);
     }
   }
 
-  function handleEditJob(job: Job) {
-    setError('');
-    setEditingJobId(job.id);
-    setTitle(job.title);
-    setCompany(job.company);
-    setDesc(job.description ?? '');
-    setUrl(job.url ?? '');
+  function startEditing(job: Job) {
+    setEditingId(job.id);
+    setForm({
+      title: job.title,
+      company: job.company,
+      status: job.status,
+      description: job.description ?? "",
+      url: job.url ?? "",
+    });
+    setError("");
   }
 
-  async function handleUpdateJob() {
-    if (editingJobId === null) return;
-
-    const trimmedTitle = title.trim();
-    const trimmedCompany = company.trim();
-
-    if (!trimmedTitle || !trimmedCompany) {
-      setError('Заполни название вакансии и компанию.');
-      return;
+  async function handleStatusChange(job: Job, status: JobStatus) {
+    try {
+      setError("");
+      const updatedJobs = await changeJobStatus(job.id, status);
+      setJobs(updatedJobs);
+    } catch {
+      setError(`Не удалось обновить статус вакансии «${job.title}».`);
     }
+  }
 
-    const currentJob = jobs.find((job) => job.id === editingJobId);
+  async function handleDelete(job: Job) {
+    const confirmed = window.confirm(
+      `Удалить вакансию «${job.title}» из ${job.company}?`,
+    );
 
-    if (!currentJob) {
-      setError('Вакансия не найдена. Обнови страницу.');
-      return;
-    }
-
-    const jobData: NewJob = {
-      title: trimmedTitle,
-      company: trimmedCompany,
-      status: currentJob.status,
-      description: desc.trim() || null,
-      url: url.trim() || null,
-    };
-
-    setError('');
-    setIsSaving(true);
+    if (!confirmed) return;
 
     try {
-      const updatedJobs = await editJob(editingJobId, jobData);
+      setError("");
+      const updatedJobs = await removeJob(job.id);
       setJobs(updatedJobs);
-      clearForm();
-    } catch (error) {
-      setError(`Не удалось сохранить изменения. ${getErrorMessage(error)}`);
-    } finally {
-      setIsSaving(false);
+
+      if (editingId === job.id) {
+        resetForm();
+      }
+    } catch {
+      setError(`Не удалось удалить вакансию «${job.title}».`);
     }
   }
-
-  const normalizedSearch = search.trim().toLowerCase();
-
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch =
-      job.title.toLowerCase().includes(normalizedSearch) ||
-      job.company.toLowerCase().includes(normalizedSearch);
-
-    const matchesStatus =
-      searchStatus === 'all' || searchStatus === job.status;
-
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <main className="app">
-      <div className="app-container">
+      <header className="app-header">
         <h1>Job Tracker</h1>
+        <p>Отслеживай вакансии и этапы поиска работы.</p>
+      </header>
 
-        {error && (
-          <p role="alert" className="error-message">
-            {error}
-          </p>
-        )}
-
-        <div className="job-form">
-          <input
-            placeholder="Vacancy title *"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-
-          <input
-            placeholder="Company name *"
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-          />
-
-          <textarea
-            placeholder="Description (optional)"
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-          />
-
-          <input
-            placeholder="Vacancy URL (optional)"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-
-          {editingJobId === null ? (
-            <button onClick={handleAddJob} disabled={isSaving}>
-              {isSaving ? 'Adding...' : 'Add vacancy'}
-            </button>
-          ) : (
-            <button onClick={handleUpdateJob} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save changes'}
-            </button>
-          )}
-
-          {editingJobId !== null && (
-            <button onClick={clearForm} disabled={isSaving}>
-              Cancel editing
-            </button>
-          )}
+      {error && (
+        <div className="error-message" role="alert">
+          {error}
         </div>
+      )}
 
-        <div className="job-filters">
-          <input
-            placeholder="Search by title or company"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <section className="job-form-section">
+        <h2>
+          {editingId !== null
+            ? "Редактировать вакансию"
+            : "Добавить вакансию"}
+        </h2>
 
-          <select
-            value={searchStatus}
-            onChange={(e) =>
-              setSearchStatus(e.target.value as JobStatus | 'all')
-            }
-          >
-            <option value="all">All statuses</option>
-            <option value="not_sent">Not Sent</option>
-            <option value="pending">Pending</option>
-            <option value="rejected">Rejected</option>
-            <option value="accepted">Accepted</option>
-          </select>
-        </div>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Название вакансии *
+            <input
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              placeholder="Junior Node.js Developer"
+              required
+            />
+          </label>
 
-        {isLoading ? (
-          <p>Loading vacancies...</p>
+          <label>
+            Компания *
+            <input
+              name="company"
+              value={form.company}
+              onChange={handleChange}
+              placeholder="Название компании"
+              required
+            />
+          </label>
+
+          <label>
+            Статус
+            <select name="status" value={form.status} onChange={handleChange}>
+              <option value="not_sent">Не отправлено</option>
+              <option value="pending">На рассмотрении</option>
+              <option value="rejected">Отказ</option>
+              <option value="accepted">Принято</option>
+            </select>
+          </label>
+
+          <label>
+            Ссылка на вакансию
+            <input
+              name="url"
+              type="url"
+              value={form.url}
+              onChange={handleChange}
+              placeholder="https://example.com/job"
+            />
+          </label>
+
+          <label>
+            Описание
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              placeholder="Требования, заметки и детали"
+              rows={4}
+            />
+          </label>
+
+          <div className="form-actions">
+            <button type="submit" disabled={saving}>
+              {saving
+                ? "Сохранение..."
+                : editingId !== null
+                  ? "Сохранить изменения"
+                  : "Добавить вакансию"}
+            </button>
+
+            {editingId !== null && (
+              <button type="button" onClick={resetForm} disabled={saving}>
+                Отмена
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <section className="jobs-section">
+        <h2>Мои вакансии ({jobs.length})</h2>
+
+        {loading ? (
+          <p>Загрузка вакансий...</p>
         ) : jobs.length === 0 ? (
-          <p>No vacancies yet</p>
-        ) : filteredJobs.length === 0 ? (
-          <p>No matching vacancies</p>
+          <p>Пока нет вакансий. Добавь первую через форму выше.</p>
         ) : (
-          <div className="job-list">
-            {filteredJobs.map((job) => (
-              <div className="job-card" key={job.id}>
-                <h2>{job.title}</h2>
-                <p>{job.company}</p>
+          <div className="jobs-list">
+            {jobs.map((job) => (
+              <article className="job-card" key={job.id}>
+                <div className="job-card-header">
+                  <div>
+                    <h3>{job.title}</h3>
+                    <p>{job.company}</p>
+                  </div>
+
+                  <select
+                    aria-label={`Статус вакансии ${job.title}`}
+                    value={job.status}
+                    onChange={(event) =>
+                      void handleStatusChange(
+                        job,
+                        event.target.value as JobStatus,
+                      )
+                    }
+                  >
+                    <option value="not_sent">Не отправлено</option>
+                    <option value="pending">На рассмотрении</option>
+                    <option value="rejected">Отказ</option>
+                    <option value="accepted">Принято</option>
+                  </select>
+                </div>
 
                 {job.description && <p>{job.description}</p>}
 
                 {job.url && (
-                  <a href={job.url} target="_blank" rel="noreferrer">
-                    Open vacancy
-                  </a>
+                  <p>
+                    <a href={job.url} target="_blank" rel="noreferrer">
+                      Открыть вакансию
+                    </a>
+                  </p>
                 )}
 
-                <select
-                  value={job.status}
-                  onChange={(e) =>
-                    handleStatusChange(job.id, e.target.value as JobStatus)
-                  }
-                >
-                  <option value="not_sent">Not Sent</option>
-                  <option value="pending">Pending</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="accepted">Accepted</option>
-                </select>
+                <div className="job-card-footer">
+                  <small>
+                    Создана: {new Date(job.createdAt).toLocaleDateString()}
+                  </small>
 
-                <div className="job-card-actions">
-                  <button onClick={() => handleEditJob(job)}>Edit</button>
-                  <button onClick={() => handleDeleteJob(job.id)}>Delete</button>
+                  <div className="job-actions">
+                    <button type="button" onClick={() => startEditing(job)}>
+                      Редактировать
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(job)}
+                    >
+                      Удалить
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}
-      </div>
+      </section>
     </main>
   );
 }
